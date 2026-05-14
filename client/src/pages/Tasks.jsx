@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { Link, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
-import { Modal } from '../components/Modal.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
 
 const STATUSES = ['Todo', 'In Progress', 'Completed', 'Overdue'];
@@ -18,7 +16,6 @@ export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
   const searchDebounce = useRef(null);
 
   const projectFilter = searchParams.get('project') || '';
@@ -86,6 +83,20 @@ export default function Tasks() {
             {isAdmin ? 'Search, filter, and manage all tasks.' : 'Tasks assigned to you.'}
           </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/projects"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            All projects
+          </Link>
+          <Link
+            to="/kanban"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Kanban
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:grid-cols-4">
@@ -146,7 +157,27 @@ export default function Tasks() {
           <Loader />
         </div>
       ) : tasks.length === 0 ? (
-        <EmptyState title="No tasks" description="Adjust filters or create a new task from a project." />
+        <EmptyState
+          title="No tasks"
+          description="Try clearing filters or open a project to add or manage tasks."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                onClick={() => setSearchParams(new URLSearchParams())}
+              >
+                Clear filters
+              </button>
+              <Link
+                to="/projects"
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+              >
+                Go to projects
+              </Link>
+            </div>
+          }
+        />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
@@ -165,8 +196,27 @@ export default function Tasks() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {tasks.map((t) => (
                   <tr key={t._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">{t.title}</td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{t.project?.title}</td>
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                      <Link
+                        to={`/tasks/${t._id}`}
+                        className="hover:text-indigo-600 dark:hover:text-indigo-400"
+                      >
+                        {t.title}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                      {t.project?._id ? (
+                        <Link
+                          to={`/projects/${t.project._id}`}
+                          className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {t.project.title}
+                        </Link>
+                      ) : (
+                        t.project?.title || '—'
+                      )}
+                    </td>
                     <td className="px-4 py-3">{t.priority}</td>
                     <td className="px-4 py-3">
                       {isAdmin || String(t.assignedTo?._id) === String(user?.id) ? (
@@ -200,13 +250,12 @@ export default function Tasks() {
                       {t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        className="text-xs font-semibold text-indigo-600 hover:underline"
-                        onClick={() => setSelected(t)}
+                      <Link
+                        to={`/tasks/${t._id}`}
+                        className="text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
                       >
                         Details
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -246,117 +295,6 @@ export default function Tasks() {
           </div>
         </div>
       )}
-
-      <TaskDetailModal task={selected} onClose={() => setSelected(null)} onChanged={loadTasks} isAdmin={isAdmin} />
     </div>
-  );
-}
-
-function TaskDetailModal({ task, onClose, onChanged, isAdmin }) {
-  const { register, handleSubmit, reset } = useForm({ defaultValues: { body: '' } });
-  const [comments, setComments] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const loadComments = useCallback(async () => {
-    if (!task) return;
-    setLoading(true);
-    try {
-      const res = await api.get(`tasks/${task._id}/comments`);
-      setComments(res.data.data);
-    } catch {
-      setComments([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [task]);
-
-  useEffect(() => {
-    reset({ body: '' });
-    loadComments();
-  }, [task, loadComments, reset]);
-
-  const onComment = async (values) => {
-    if (!task) return;
-    try {
-      await api.post(`tasks/${task._id}/comments`, { body: values.body });
-      toast.success('Comment added');
-      reset({ body: '' });
-      await loadComments();
-      onChanged();
-    } catch (e) {
-      toast.error(e.response?.data?.message || 'Failed to add comment');
-    }
-  };
-
-  if (!task) return null;
-
-  return (
-    <Modal open onClose={onClose} title={task.title}>
-      <div className="space-y-4 text-sm">
-        <p className="text-slate-600 dark:text-slate-300">{task.description || 'No description'}</p>
-        <div className="flex flex-wrap gap-3 text-xs text-slate-500">
-          <span>Project: {task.project?.title}</span>
-          <span>Priority: {task.priority}</span>
-          <span>Status: {task.status}</span>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Comments</h3>
-          {loading ? (
-            <Loader className="py-6" />
-          ) : (
-            <ul className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-xl border border-slate-100 p-2 dark:border-slate-800">
-              {comments.length === 0 ? (
-                <li className="text-xs text-slate-500">No comments yet.</li>
-              ) : (
-                comments.map((c) => (
-                  <li key={c._id} className="rounded-lg bg-slate-50 p-2 text-xs dark:bg-slate-800/80">
-                    <p className="font-semibold text-slate-800 dark:text-slate-100">{c.user?.name}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{c.body}</p>
-                    <p className="mt-1 text-[10px] text-slate-400">
-                      {new Date(c.createdAt).toLocaleString()}
-                    </p>
-                  </li>
-                ))
-              )}
-            </ul>
-          )}
-          <form className="mt-3 space-y-2" onSubmit={handleSubmit(onComment)}>
-            <textarea
-              rows={2}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-              placeholder="Write a comment"
-              {...register('body', { required: true })}
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white"
-            >
-              Post comment
-            </button>
-          </form>
-        </div>
-
-        {isAdmin ? (
-          <button
-            type="button"
-            className="text-xs font-semibold text-red-600 hover:underline"
-            onClick={async () => {
-              if (!window.confirm('Delete this task?')) return;
-              try {
-                await api.delete(`tasks/${task._id}`);
-                toast.success('Task deleted');
-                onClose();
-                onChanged();
-              } catch (e) {
-                toast.error(e.response?.data?.message || 'Delete failed');
-              }
-            }}
-          >
-            Delete task
-          </button>
-        ) : null}
-      </div>
-    </Modal>
   );
 }

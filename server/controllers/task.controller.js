@@ -5,6 +5,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ROLES } from '../utils/constants.js';
 import { logActivity } from '../services/activity.service.js';
 import { syncOverdueTasks } from '../services/task.service.js';
+import { userCanAccessTask } from '../services/taskAccess.service.js';
 
 export const listTasks = asyncHandler(async (req, res) => {
   await syncOverdueTasks();
@@ -89,6 +90,25 @@ export const createTask = asyncHandler(async (req, res) => {
     .populate('createdBy', 'name email');
 
   res.status(201).json({ success: true, data: populated });
+});
+
+export const getTask = asyncHandler(async (req, res) => {
+  await syncOverdueTasks();
+
+  const task = await Task.findById(req.params.id)
+    .populate('assignedTo', 'name email')
+    .populate('project', 'title status')
+    .populate('createdBy', 'name email');
+
+  if (!task) {
+    return res.status(404).json({ success: false, message: 'Task not found' });
+  }
+
+  if (!(await userCanAccessTask(req.user, task))) {
+    return res.status(403).json({ success: false, message: 'Access denied' });
+  }
+
+  res.json({ success: true, data: task });
 });
 
 export const updateTask = asyncHandler(async (req, res) => {

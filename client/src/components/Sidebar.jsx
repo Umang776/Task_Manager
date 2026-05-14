@@ -37,6 +37,11 @@ export function Sidebar({ open, onClose }) {
       <NavLink to="/profile" className={linkClass} onClick={onClose}>
         <span>Profile</span>
       </NavLink>
+      {isAdmin ? (
+        <NavLink to="/users" className={linkClass} onClick={onClose}>
+          <span>Users</span>
+        </NavLink>
+      ) : null}
       <p className="mt-4 px-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
         {isAdmin ? 'Admin' : 'Member'}
       </p>

@@ -10,6 +10,7 @@ import {
   rectIntersection,
 } from '@dnd-kit/core';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 
 const STATUSES = ['Todo', 'In Progress', 'Completed', 'Overdue'];
@@ -61,7 +62,13 @@ function DraggableTask({ task, disabled }) {
       {...listeners}
       {...attributes}
     >
-      <p className="font-semibold text-slate-900 dark:text-white">{task.title}</p>
+      <Link
+        to={`/tasks/${task._id}`}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="block font-semibold text-indigo-700 hover:underline dark:text-indigo-300"
+      >
+        {task.title}
+      </Link>
       <p className="mt-1 text-xs text-slate-500">{task.project?.title}</p>
       <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-slate-500">
         <span>{task.priority}</span>

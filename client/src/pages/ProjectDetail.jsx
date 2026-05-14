@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
@@ -82,6 +82,20 @@ export default function ProjectDetail() {
           <p className="mt-2 text-sm text-slate-500">
             Status: <span className="font-semibold text-slate-800 dark:text-slate-100">{project.status}</span>
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              to={`/tasks?project=${id}`}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Tasks in table view
+            </Link>
+            <Link
+              to="/kanban"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            >
+              Kanban
+            </Link>
+          </div>
         </div>
         {isAdmin ? (
           <div className="flex flex-wrap gap-2">

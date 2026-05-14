@@ -1,9 +1,8 @@
 import { useAuth } from '../context/AuthContext.jsx';
-import { useTheme } from '../context/ThemeContext.jsx';
+import { ThemeToggle } from './ThemeToggle.jsx';
 
 export function Navbar({ onMenu }) {
   const { user } = useAuth();
-  const { dark, toggle } = useTheme();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
@@ -20,16 +19,10 @@ export function Navbar({ onMenu }) {
           <p className="text-sm font-semibold text-slate-900 dark:text-white">
             Hello, {user?.name}
           </p>
-          <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+          <p className="text-xs text-slate-500 capitalize dark:text-slate-400">{user?.role}</p>
         </div>
       </div>
-      <button
-        type="button"
-        onClick={toggle}
-        className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-      >
-        {dark ? 'Light mode' : 'Dark mode'}
-      </button>
+      <ThemeToggle />
     </header>
   );
 }

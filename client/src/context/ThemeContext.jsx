@@ -5,7 +5,16 @@ const ThemeContext = createContext(null);
 const STORAGE_KEY = 'ttm_theme';
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(() => localStorage.getItem(STORAGE_KEY) === 'dark');
+  const [dark, setDark] = useState(() => {
+    if (typeof document !== 'undefined' && document.documentElement.classList.contains('dark')) {
+      return true;
+    }
+    try {
+      return localStorage.getItem(STORAGE_KEY) === 'dark';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);

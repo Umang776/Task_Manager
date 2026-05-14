@@ -1,6 +1,15 @@
 # Team Task Manager
 
-Production-ready monorepo for role-based project and task management. **Admins** manage projects, members, and tasks. **Members** work on assigned tasks (status updates, comments, Kanban) without destructive permissions.
+Production-ready monorepo for **role-based access (Admin / Member)**, projects, tasks, and progress tracking. **Admins** manage projects, members, and tasks. **Members** work on assigned tasks (status updates, comments, Kanban) without destructive permissions.
+
+## Role-based access (Admin / Member)
+
+| Role | Capabilities |
+|------|----------------|
+| **Admin** | Full CRUD on projects and tasks, manage project members, view all dashboard analytics, list users for assignment, delete tasks/projects. |
+| **Member** | View projects they belong to; view and update **status** only on **assigned** tasks; comments and Kanban on permitted tasks; no project/task delete or member management. |
+
+Enforcement is **server-side** (JWT + role middleware + per-route checks), not UI-only.
 
 ## Screenshots
 
@@ -8,8 +17,7 @@ Production-ready monorepo for role-based project and task management. **Admins**
 
 ## Features
 
-- JWT authentication with persistent sessions (local storage) and protected routes
-- Roles: **admin** and **member** with server-side enforcement
+- **Role-based access (Admin / Member)** — JWT authentication with persistent sessions (local storage) and protected routes
 - Projects with statuses: Active, Completed, On Hold
 - Tasks with priorities (Low, Medium, High) and statuses (Todo, In Progress, Completed, Overdue)
 - Automatic overdue sync based on due dates

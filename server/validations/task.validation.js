@@ -36,3 +36,14 @@ export const commentBodyRules = [
   param('taskId').isMongoId().withMessage('Invalid task id'),
   body('body').trim().notEmpty().isLength({ max: 2000 }).withMessage('Comment is required'),
 ];
+
+export const updateCommentRules = [
+  param('taskId').isMongoId().withMessage('Invalid task id'),
+  param('commentId').isMongoId().withMessage('Invalid comment id'),
+  body('body').trim().notEmpty().isLength({ max: 2000 }).withMessage('Comment is required'),
+];
+
+export const commentTaskAndCommentIdParams = [
+  param('taskId').isMongoId().withMessage('Invalid task id'),
+  param('commentId').isMongoId().withMessage('Invalid comment id'),
+];

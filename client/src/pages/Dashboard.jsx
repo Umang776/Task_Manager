@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { DashboardCharts } from '../components/charts/DashboardCharts.jsx';
 
@@ -14,6 +16,8 @@ function StatCard({ label, value, hint }) {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +54,38 @@ export default function Dashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
-        <p className="text-slate-600 dark:text-slate-300">Overview of projects and tasks.</p>
+        <p className="text-slate-600 dark:text-slate-300">
+          Overview with <span className="font-semibold text-slate-800 dark:text-slate-100">role-based access (Admin / Member)</span> — admins see org-wide stats; members see their assignments.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            to="/projects"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Projects
+          </Link>
+          <Link
+            to="/tasks"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Tasks
+          </Link>
+          <Link
+            to="/kanban"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Kanban
+          </Link>
+          {isAdmin ? (
+            <Link
+              to="/projects"
+              state={{ openCreate: true }}
+              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+            >
+              New project
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

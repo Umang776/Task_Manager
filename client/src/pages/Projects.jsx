@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
@@ -19,6 +19,7 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const location = useLocation();
 
   const load = async () => {
     const res = await api.get('projects');
@@ -40,6 +41,16 @@ export default function Projects() {
       cancelled = true;
     };
   }, []);
+
+  const openCreateFromNav = Boolean(location.state?.openCreate);
+
+  useEffect(() => {
+    if (openCreateFromNav) {
+      setEditing(null);
+      setModalOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [openCreateFromNav, location.pathname, navigate]);
 
   const openCreate = () => {
     setEditing(null);
@@ -123,9 +134,10 @@ export default function Projects() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         project={editing}
-        onSaved={async () => {
+        onSaved={async ({ createdId } = {}) => {
           await load();
           setModalOpen(false);
+          if (createdId) navigate(`/projects/${createdId}`);
         }}
       />
     </div>
@@ -172,11 +184,14 @@ function ProjectModal({ open, onClose, project, onSaved }) {
       if (project) {
         await api.put(`projects/${project._id}`, payload);
         toast.success('Project updated');
+        await onSaved({});
       } else {
-        await api.post('projects', payload);
+        const res = await api.post('projects', payload);
         toast.success('Project created');
+        const created = res.data.data;
+        const createdId = created?._id != null ? String(created._id) : undefined;
+        await onSaved({ createdId });
       }
-      await onSaved();
     } catch (e) {
       toast.error(e.response?.data?.message || 'Save failed');
     }
