@@ -29,7 +29,7 @@ Enforcement is **server-side** (JWT + role middleware + per-route checks), not U
 - Dark mode (persisted)
 - Responsive SaaS-style UI (Tailwind CSS)
 - Docker Compose for local MongoDB
-- Railway-oriented server configuration
+- Single-container production deploy (Dockerfile + static SPA from Express)
 
 ## Tech Stack
 
@@ -62,9 +62,12 @@ Enforcement is **server-side** (JWT + role middleware + per-route checks), not U
 │   ├── validations/
 │   ├── seed/
 │   ├── server.js
-│   └── railway.json
+│   └── .env.example
+├── Dockerfile              # Production image: API + built SPA
+├── railway.json            # Railway Docker build (repo root)
+├── render.yaml             # Optional Render blueprint
 ├── docker-compose.yml
-├── package.json            # root scripts (optional)
+├── package.json            # Root scripts (dev, build, start)
 └── README.md
 ```
 
@@ -92,10 +95,11 @@ Copy `server/.env.example` to `server/.env` and set:
 
 | Variable | Description |
 |----------|-------------|
-| `PORT` | API port (default `5000`) |
+| `PORT` | API port (default `5000`; use host `PORT` in containers) |
+| `NODE_ENV` | Set to `production` in deployed environments |
 | `MONGO_URI` | Mongo connection string |
 | `JWT_SECRET` | Strong secret for signing JWTs |
-| `CLIENT_URL` | Allowed CORS origin(s), comma-separated if multiple |
+| `CLIENT_URL` | Allowed CORS origin(s), comma-separated. Use your public site URL(s). Optional in production combined deploy (see README). |
 
 ### Client (`client/.env`)
 
@@ -103,7 +107,7 @@ Copy `client/.env.example` to `client/.env` for production builds:
 
 | Variable | Description |
 |----------|-------------|
-| `VITE_API_URL` | Full API base including `/api`, e.g. `https://your-service.up.railway.app/api` |
+| `VITE_API_URL` | Full API base including `/api` when the SPA and API are on **different** origins. Omit for local dev (Vite proxy) or **combined** deploy (same origin `/api`). |
 
 For **local development**, you can rely on the Vite dev proxy and omit `VITE_API_URL` so requests go to `/api` on the same origin.
 
@@ -147,25 +151,60 @@ For **local development**, you can rely on the Vite dev proxy and omit `VITE_API
 
 The Vite dev server proxies `/api` to `http://localhost:5000` (override with `VITE_PROXY_TARGET` in `client/.env` if needed).
 
-## Production Build
+## Production build (local smoke test)
 
 ```bash
-cd client && npm run build
-cd ../server && npm run start
+npm run install:all
+npm run build
+cd server
+# PowerShell:
+$env:NODE_ENV = "production"; node server.js
+# cmd.exe:
+#   set NODE_ENV=production && node server.js
 ```
 
-Serve `client/dist` as static files from Express or a CDN if you prefer a split deployment.
+With `NODE_ENV=production` and `client/dist` present, the API serves the React app on the same port (defaults to `5000`). Open `http://localhost:5000`. The SPA calls `/api` on the same origin, so you do **not** need `VITE_API_URL` for this layout.
 
-## Railway Deployment
+## Deployment (Docker — recommended)
 
-Typical setup uses **two Railway services**:
+The repo root **`Dockerfile`** builds the Vite client, installs production server dependencies, and runs **`node server.js`** from `server/`. The container listens on **`PORT`** (default `5000`).
 
-1. **MongoDB** plugin or external Atlas cluster — set `MONGO_URI` on the API service.
-2. **API (Node)** — root directory `server`, build command `npm install`, start command `npm run start`. Set `PORT` (Railway provides), `JWT_SECRET`, `CLIENT_URL` (your deployed SPA origin), and `MONGO_URI`.
+1. Add a **MongoDB** instance (Atlas, Railway Mongo plugin, Docker, etc.) and copy the connection string.
+2. Build and run locally:
 
-3. **Static SPA** — build `client` with `npm run build` and deploy `dist`, setting `VITE_API_URL` at build time to your public API base URL ending in `/api`.
+   ```bash
+   docker build -t team-task-manager .
+   docker run --rm -p 5000:5000 ^
+     -e NODE_ENV=production ^
+     -e MONGO_URI="your-connection-string" ^
+     -e JWT_SECRET="long-random-secret" ^
+     -e CLIENT_URL="http://localhost:5000" ^
+     team-task-manager
+   ```
 
-`server/railway.json` documents a default start command for the API service.
+   On Linux/macOS, use `-e VAR=value` without `^`.
+
+3. **Production `CLIENT_URL`**: set to the **public URL users type in the browser** (comma-separated for multiple origins). If you omit it while `NODE_ENV=production`, CORS falls back to **reflecting the request `Origin`**, which works for a single public site but is less explicit than an allowlist.
+
+**Health check:** `GET /health`
+
+### Railway
+
+- Connect the GitHub repo and create a **new service** from this repo (root directory `.`).
+- Railway picks up **`railway.json`** and builds with the **Dockerfile**.
+- Set variables: `MONGO_URI`, `JWT_SECRET`, and **`CLIENT_URL`** = your Railway app URL (e.g. `https://your-app.up.railway.app`). Railway injects `PORT`; do not hardcode it in the image.
+- Optional: run **`npm run seed`** once from a local machine pointed at the same `MONGO_URI` to create demo users (not automatic in deploy).
+
+### Render
+
+- Optional blueprint: **`render.yaml`** (Docker web service). Create a managed MongoDB or attach Atlas, then set `MONGO_URI` and `CLIENT_URL` on the web service to its public URL.
+
+### Split hosting (API + static CDN)
+
+If the frontend is hosted separately (e.g. Netlify, S3, Cloudflare Pages):
+
+1. Build the client with **`VITE_API_URL`** set to your API’s public base **including `/api`**, e.g. `https://api.example.com/api`.
+2. Set **`CLIENT_URL`** on the server to the SPA origin (or comma-separated list). Do **not** serve `client/dist` from the API container if you use this model; run the API with `NODE_ENV=production` but without copying `dist` into the image, or ignore the unused static files — the API still works; only unmatched non-API routes return JSON 404.
 
 ## API Endpoints
 
@@ -200,11 +239,14 @@ Base path: `/api`
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/tasks` | List with `project`, `status`, `search`, `page`, `limit` |
+| GET | `/tasks/:id` | Task detail (access-checked) |
 | POST | `/tasks` | Create (admin) |
 | PUT | `/tasks/:id` | Update (admin full; member **status only** on assigned tasks) |
 | DELETE | `/tasks/:id` | Delete (admin) |
 | GET | `/tasks/:taskId/comments` | List comments |
 | POST | `/tasks/:taskId/comments` | Add comment |
+| PATCH | `/tasks/:taskId/comments/:commentId` | Edit comment (author or admin) |
+| DELETE | `/tasks/:taskId/comments/:commentId` | Delete comment (author or admin) |
 
 ### Dashboard
 
@@ -217,7 +259,7 @@ Base path: `/api`
 - Passwords hashed with bcrypt (via Mongoose pre-save on `User`).
 - JWT required for all project/task/dashboard routes.
 - Role checks on destructive project/task operations and user listing.
-- Helmet, CORS allowlist, input validation (express-validator), centralized error handler.
+- Helmet, CORS allowlist (or reflected origin when `CLIENT_URL` is unset in production), input validation (express-validator), centralized error handler.
 
 ## License
 
