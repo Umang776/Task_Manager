@@ -201,6 +201,10 @@ The repo root **`Dockerfile`** builds the Vite client, installs production serve
 - Set variables: `MONGO_URI`, `JWT_SECRET`, and **`CLIENT_URL`** = your Railway app URL (e.g. `https://your-app.up.railway.app`). Railway injects `PORT`; do not hardcode it in the image.
 - Optional: run **`npm run seed`** once from a local machine pointed at the same `MONGO_URI` to create demo users (not automatic in deploy).
 
+**Healthcheck failed / “Network › Healthcheck”:** The app listens as soon as the container starts; `GET /health` should return **200** quickly. If deploy still fails, check **Deploy logs** for `MongoDB connection failed` — fix **`MONGO_URI`**, Atlas **Network Access** (allow `0.0.0.0/0` or Railway’s egress), and **database user** credentials. Open `/health` in the browser: `dbReady: true` means Mongo is connected.
+
+**Atlas `bad auth` / error 8000:** The database username or password in `MONGO_URI` is wrong, or the password needs URL-encoding. In Atlas → **Database Access**, reset the user’s password, then either paste the URI from **Connect → Drivers** (replace `<password>`), or from repo root run `npm run print:mongo-uri --prefix server` after setting **`MONGO_PASS`** in your shell (see `server/scripts/print-atlas-uri.mjs`) and paste the printed line into Railway as **`MONGO_URI`**.
+
 ### Render
 
 - Optional blueprint: **`render.yaml`** (Docker web service). Create a managed MongoDB or attach Atlas, then set `MONGO_URI` and `CLIENT_URL` on the web service to its public URL.
