@@ -30,6 +30,7 @@ Enforcement is **server-side** (JWT + role middleware + per-route checks), not U
 - Responsive SaaS-style UI (Tailwind CSS)
 - Docker Compose for local MongoDB
 - Single-container production deploy (Dockerfile + static SPA from Express)
+- Automated tests (`npm test`) and CI
 
 ## Tech Stack
 
@@ -51,6 +52,9 @@ Enforcement is **server-side** (JWT + role middleware + per-route checks), not U
 │   │   ├── context/
 │   │   └── pages/
 │   └── vite.config.js
+├── client/tests/           # Node smoke tests (`npm test` in client/)
+├── docs/
+│   └── OPERATIONS.md
 ├── server/                 # Express API
 │   ├── config/
 │   ├── controllers/
@@ -61,6 +65,8 @@ Enforcement is **server-side** (JWT + role middleware + per-route checks), not U
 │   ├── utils/
 │   ├── validations/
 │   ├── seed/
+│   ├── tests/              # API smoke + unit tests (`npm test` in server/)
+│   ├── app.js              # createApp() for server + automated tests
 │   ├── server.js
 │   └── .env.example
 ├── Dockerfile              # Production image: API + built SPA
@@ -206,6 +212,21 @@ If the frontend is hosted separately (e.g. Netlify, S3, Cloudflare Pages):
 1. Build the client with **`VITE_API_URL`** set to your API’s public base **including `/api`**, e.g. `https://api.example.com/api`.
 2. Set **`CLIENT_URL`** on the server to the SPA origin (or comma-separated list). Do **not** serve `client/dist` from the API container if you use this model; run the API with `NODE_ENV=production` but without copying `dist` into the image, or ignore the unused static files — the API still works; only unmatched non-API routes return JSON 404.
 
+## Testing
+
+```bash
+npm test
+# or
+npm run test --prefix server
+npm run test --prefix client
+```
+
+Server tests run with `NODE_ENV=test` (see `server/tests/test-env.cjs`); HTTP smoke tests do not require MongoDB. CI runs tests on every push (see `.github/workflows/ci.yml`).
+
+## Operations
+
+Backups, staging, rate limits, logging, and split-domain cookies: **[docs/OPERATIONS.md](docs/OPERATIONS.md)**.
+
 ## API Endpoints
 
 Base path: `/api`
@@ -214,9 +235,10 @@ Base path: `/api`
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/auth/signup` | Register (member role) |
-| POST | `/auth/login` | Login |
-| GET | `/auth/me` | Current user (Bearer token) |
+| POST | `/auth/signup` | Register (member role). Sets **httpOnly** session cookie; returns `user` only. |
+| POST | `/auth/login` | Login. Sets **httpOnly** session cookie; returns `user` only. |
+| POST | `/auth/logout` | Clears session cookie. |
+| GET | `/auth/me` | Current user (session cookie or `Authorization: Bearer` for API clients) |
 
 ### Users (admin)
 
@@ -257,9 +279,11 @@ Base path: `/api`
 ## Security Notes
 
 - Passwords hashed with bcrypt (via Mongoose pre-save on `User`).
-- JWT required for all project/task/dashboard routes.
+- JWT stored in an **httpOnly, SameSite** cookie (`ttm_at`) for browser sessions; `Authorization: Bearer` is still accepted for scripts and tooling.
+- JWT required for all project/task/dashboard routes (via cookie or header).
 - Role checks on destructive project/task operations and user listing.
 - Helmet, CORS allowlist (or reflected origin when `CLIENT_URL` is unset in production), input validation (express-validator), centralized error handler.
+- Global `/api` rate limiting plus stricter limits on login/signup (`server/middleware/rateLimit.js`).
 
 ## License
 

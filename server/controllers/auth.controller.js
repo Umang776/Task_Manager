@@ -3,6 +3,7 @@ import { signToken } from '../utils/jwt.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ROLES } from '../utils/constants.js';
 import { logActivity } from '../services/activity.service.js';
+import { attachAuthCookie, clearAuthCookie } from '../utils/authCookie.js';
 
 export const signup = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -28,10 +29,10 @@ export const signup = asyncHandler(async (req, res) => {
   });
 
   const token = signToken({ id: user._id.toString(), role: user.role });
+  attachAuthCookie(res, token);
 
   res.status(201).json({
     success: true,
-    token,
     user: {
       id: user._id,
       name: user.name,
@@ -50,6 +51,7 @@ export const login = asyncHandler(async (req, res) => {
   }
 
   const token = signToken({ id: user._id.toString(), role: user.role });
+  attachAuthCookie(res, token);
 
   await logActivity({
     userId: user._id,
@@ -60,7 +62,6 @@ export const login = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    token,
     user: {
       id: user._id,
       name: user.name,
@@ -69,6 +70,11 @@ export const login = asyncHandler(async (req, res) => {
     },
   });
 });
+
+export function logout(_req, res) {
+  clearAuthCookie(res);
+  res.json({ success: true });
+}
 
 export const me = asyncHandler(async (req, res) => {
   res.json({

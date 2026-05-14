@@ -1,11 +1,12 @@
 import { verifyToken } from '../utils/jwt.js';
 import User from '../models/User.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { AUTH_COOKIE_NAME } from '../utils/authCookie.js';
 
 export const protect = asyncHandler(async (req, res, next) => {
-  let token;
+  let token = req.cookies?.[AUTH_COOKIE_NAME];
   const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
+  if (!token && authHeader?.startsWith('Bearer ')) {
     token = authHeader.split(' ')[1];
   }
 
