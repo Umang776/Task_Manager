@@ -7,7 +7,9 @@ function FieldWrap({ label, error, hint, htmlFor, children }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
+      whileHover={{ scale: 1.006, transition: { type: 'spring', stiffness: 520, damping: 38 } }}
       className="space-y-1.5"
+      style={{ transformOrigin: 'center top' }}
     >
       {label ? (
         <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 dark:text-slate-200">

@@ -1,17 +1,45 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { DashboardCharts } from '../components/charts/DashboardCharts.jsx';
 
+const linkSpring = { type: 'spring', stiffness: 420, damping: 28 };
+const MotionLink = motion(Link);
+
+const subtleLinkHover = {
+  whileHover: { y: -3, scale: 1.04, boxShadow: '0 12px 26px -12px rgba(99, 102, 241, 0.22)' },
+  whileTap: { scale: 0.97 },
+  transition: linkSpring,
+};
+
+const primaryLinkHover = {
+  whileHover: {
+    y: -3,
+    scale: 1.05,
+    boxShadow: '0 14px 30px -10px rgba(79, 70, 229, 0.45)',
+  },
+  whileTap: { scale: 0.97 },
+  transition: linkSpring,
+};
+
 function StatCard({ label, value, hint }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <motion.div
+      whileHover={{
+        y: -5,
+        scale: 1.02,
+        boxShadow: '0 18px 36px -14px rgba(99, 102, 241, 0.15)',
+      }}
+      transition={linkSpring}
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
+    >
       <p className="text-sm font-medium text-slate-500">{label}</p>
       <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{value}</p>
       {hint ? <p className="mt-1 text-xs text-slate-500">{hint}</p> : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -58,32 +86,36 @@ export default function Dashboard() {
           Overview with <span className="font-semibold text-slate-800 dark:text-slate-100">role-based access (Admin / Member)</span> — admins see org-wide stats; members see their assignments.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link
+          <MotionLink
             to="/projects"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            {...subtleLinkHover}
           >
             Projects
-          </Link>
-          <Link
+          </MotionLink>
+          <MotionLink
             to="/tasks"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            {...subtleLinkHover}
           >
             Tasks
-          </Link>
-          <Link
+          </MotionLink>
+          <MotionLink
             to="/board"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            {...subtleLinkHover}
           >
             Task Board
-          </Link>
+          </MotionLink>
           {isAdmin ? (
-            <Link
+            <MotionLink
               to="/projects"
               state={{ openCreate: true }}
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+              className="rounded-xl bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+              {...primaryLinkHover}
             >
               New project
-            </Link>
+            </MotionLink>
           ) : null}
         </div>
       </div>
@@ -105,7 +137,13 @@ export default function Dashboard() {
             <li className="py-6 text-sm text-slate-500">No activity yet.</li>
           ) : (
             data.recentActivity.map((log) => (
-              <li key={log._id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+              <motion.li
+                key={log._id}
+                layout
+                whileHover={{ x: 8 }}
+                transition={linkSpring}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg py-3 text-sm transition-colors hover:bg-violet-50/80 dark:hover:bg-violet-950/20"
+              >
                 <div>
                   <span className="font-medium text-slate-800 dark:text-slate-100">
                     {log.user?.name || 'User'}
@@ -118,7 +156,7 @@ export default function Dashboard() {
                 <span className="text-xs text-slate-400">
                   {new Date(log.createdAt).toLocaleString()}
                 </span>
-              </li>
+              </motion.li>
             ))
           )}
         </ul>

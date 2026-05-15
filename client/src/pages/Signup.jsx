@@ -1,12 +1,21 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
 import { AuthShell } from '../components/layout/AuthShell.jsx';
 import { Input } from '../components/ui/Input.jsx';
 import { Select } from '../components/ui/Select.jsx';
 import { Button } from '../components/ui/Button.jsx';
+
+const MotionLink = motion(Link);
+
+const authFooterLinkMotion = {
+  whileHover: { scale: 1.06 },
+  whileTap: { scale: 0.96 },
+  transition: { type: 'spring', stiffness: 480, damping: 26 },
+};
 
 export default function Signup() {
   const { signup, isAuthenticated } = useAuth();
@@ -99,9 +108,13 @@ export default function Signup() {
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
         Already have an account?{' '}
-        <Link className="font-semibold text-violet-400 hover:text-violet-300" to="/login">
+        <MotionLink
+          className="inline-block font-semibold text-violet-400 hover:text-violet-300"
+          to="/login"
+          {...authFooterLinkMotion}
+        >
           Sign in
-        </Link>
+        </MotionLink>
       </p>
     </AuthShell>
   );

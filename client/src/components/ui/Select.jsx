@@ -2,6 +2,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const triggerSpring = { type: 'spring', stiffness: 450, damping: 28 };
+
 export function Select({
   label,
   value,
@@ -71,11 +73,16 @@ export function Select({
         >
           {options.map((opt) => (
             <li key={String(opt.value)}>
-              <button
+              <motion.button
                 type="button"
                 role="option"
                 aria-selected={String(opt.value) === String(value)}
-                className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition ${
+                whileHover={{
+                  x: 6,
+                  transition: { type: 'spring', stiffness: 500, damping: 32 },
+                }}
+                whileTap={{ scale: 0.985 }}
+                className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors ${
                   String(opt.value) === String(value)
                     ? 'bg-violet-50 font-semibold text-violet-700 dark:bg-violet-950/50 dark:text-violet-300'
                     : 'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800'
@@ -86,7 +93,7 @@ export function Select({
                 }}
               >
                 {opt.label}
-              </button>
+              </motion.button>
             </li>
           ))}
         </motion.ul>
@@ -99,24 +106,27 @@ export function Select({
       {label ? (
         <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">{label}</span>
       ) : null}
-      <button
+      <motion.button
         ref={triggerRef}
         type="button"
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={open}
+        whileHover={disabled ? undefined : { scale: 1.008, borderColor: 'rgba(139, 92, 246, 0.55)' }}
+        whileTap={disabled ? undefined : { scale: 0.995 }}
+        transition={triggerSpring}
         onClick={() => !disabled && setOpen((v) => !v)}
-        className={`flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/90 px-4 py-2.5 text-left text-sm shadow-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950/90 dark:text-white ${
+        className={`flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-white/90 px-4 py-2.5 text-left text-sm shadow-sm outline-none transition-colors focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950/90 dark:text-white ${
           open ? 'border-violet-500 ring-2 ring-violet-500/20' : ''
         }`}
       >
         <span className={selected ? 'text-slate-900 dark:text-white' : 'text-slate-400'}>
           {selected?.label ?? placeholder}
         </span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} className="text-slate-400">
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.22 }} className="text-slate-400">
           ▾
         </motion.span>
-      </button>
+      </motion.button>
       {hint ? <p className="text-xs text-slate-500 dark:text-slate-400">{hint}</p> : null}
       {typeof document !== 'undefined' ? createPortal(dropdown, document.body) : null}
     </div>

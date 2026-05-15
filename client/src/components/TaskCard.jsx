@@ -1,3 +1,7 @@
+import { motion } from 'framer-motion';
+
+const cardSpring = { type: 'spring', stiffness: 380, damping: 30 };
+
 const priorityColors = {
   Low: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200',
   Medium: 'bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200',
@@ -13,10 +17,18 @@ const statusColors = {
 
 export function TaskCard({ task, onClick, footer }) {
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onClick}
-      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-800"
+      whileHover={{
+        y: -5,
+        scale: 1.012,
+        boxShadow: '0 18px 36px -14px rgba(99, 102, 241, 0.26)',
+        borderColor: 'rgba(129, 140, 248, 0.55)',
+      }}
+      whileTap={{ scale: 0.99 }}
+      transition={cardSpring}
+      className="w-full rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-indigo-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-800"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -46,6 +58,6 @@ export function TaskCard({ task, onClick, footer }) {
         ) : null}
       </div>
       {footer ? <div className="mt-3">{footer}</div> : null}
-    </button>
+    </motion.button>
   );
 }

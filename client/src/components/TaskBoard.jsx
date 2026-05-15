@@ -96,6 +96,15 @@ function DraggableTask({ task, disabled, onAdvance }) {
       exit={{ opacity: 0, scale: 0.9 }}
       ref={setNodeRef}
       style={style}
+      whileHover={
+        disabled || isDragging
+          ? undefined
+          : {
+              y: -5,
+              boxShadow: '0 16px 32px -14px rgba(99, 102, 241, 0.28)',
+              transition: { type: 'spring', stiffness: 420, damping: 28 },
+            }
+      }
       className={`group rounded-xl border bg-white p-3 text-left text-sm shadow-sm dark:bg-slate-950 ${
         overdue ? 'border-amber-400/60 ring-1 ring-amber-400/30' : 'border-slate-200 dark:border-slate-700'
       } ${isDragging ? 'opacity-50' : ''} ${disabled ? 'opacity-70' : ''}`}
@@ -130,17 +139,20 @@ function DraggableTask({ task, disabled, onAdvance }) {
           </motion.div>
         </div>
         {!disabled ? (
-          <button
+          <motion.button
             type="button"
             title="Advance status"
             onClick={(e) => {
               e.stopPropagation();
               onAdvance();
             }}
-            className="h-8 w-8 shrink-0 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 opacity-0 transition group-hover:opacity-100 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-300"
+            whileHover={{ scale: 1.08, boxShadow: '0 8px 18px -6px rgba(139, 92, 246, 0.45)' }}
+            whileTap={{ scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 450, damping: 22 }}
+            className="h-8 w-8 shrink-0 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 opacity-0 transition-opacity group-hover:opacity-100 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-300"
           >
             →
-          </button>
+          </motion.button>
         ) : null}
       </div>
     </motion.div>

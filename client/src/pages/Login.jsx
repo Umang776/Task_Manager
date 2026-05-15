@@ -9,6 +9,14 @@ import { Input } from '../components/ui/Input.jsx';
 import { Select } from '../components/ui/Select.jsx';
 import { Button } from '../components/ui/Button.jsx';
 
+const MotionLink = motion(Link);
+
+const authFooterLinkMotion = {
+  whileHover: { scale: 1.06 },
+  whileTap: { scale: 0.96 },
+  transition: { type: 'spring', stiffness: 480, damping: 26 },
+};
+
 const DEFAULT_ADMIN = { email: 'admin@ethara.ai', password: 'Admin123!' };
 const DEFAULT_MEMBER = { email: 'demo.member@gmail.com', password: 'Member123!' };
 
@@ -99,17 +107,19 @@ export default function Login() {
           {...register('password', { required: true })}
         />
         <p className="text-xs text-slate-500">{demoHint}</p>
-        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </motion.div>
+        <Button type="submit" disabled={isSubmitting} className="w-full">
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </Button>
       </form>
       <p className="mt-6 text-center text-sm text-slate-400">
         No account?{' '}
-        <Link className="font-semibold text-violet-400 hover:text-violet-300" to="/signup">
+        <MotionLink
+          className="inline-block font-semibold text-violet-400 hover:text-violet-300"
+          to="/signup"
+          {...authFooterLinkMotion}
+        >
           Sign up as Admin or Member
-        </Link>
+        </MotionLink>
       </p>
     </AuthShell>
   );
