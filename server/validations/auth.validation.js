@@ -1,26 +1,33 @@
 import { body } from 'express-validator';
-import { allowedEmailMessage, isAllowedEmail } from '../utils/allowedEmail.js';
+import { adminWorkspaceEmailMessage, isAllowedEmail } from '../utils/allowedEmail.js';
 
-const etharaEmail = body('email')
-  .isEmail()
-  .normalizeEmail()
-  .withMessage('Valid email is required')
-  .custom((value) => {
-    if (!isAllowedEmail(value)) {
-      throw new Error(allowedEmailMessage());
-    }
-    return true;
-  });
+const ACCOUNT_TYPES = ['admin', 'member'];
+
+function emailForAccountType(accountTypeField = 'accountType') {
+  return body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Valid email is required')
+    .custom((value, { req }) => {
+      const kind = req.body[accountTypeField];
+      if (kind === 'admin' && !isAllowedEmail(value)) {
+        throw new Error(adminWorkspaceEmailMessage());
+      }
+      return true;
+    });
+}
 
 export const signupRules = [
+  body('accountType').isIn(ACCOUNT_TYPES).withMessage('Choose Admin or Member signup'),
   body('name').trim().notEmpty().withMessage('Name is required'),
-  etharaEmail,
+  emailForAccountType(),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters'),
 ];
 
 export const loginRules = [
-  etharaEmail,
+  body('accountType').isIn(ACCOUNT_TYPES).withMessage('Choose Admin or Member sign-in'),
+  emailForAccountType(),
   body('password').notEmpty().withMessage('Password is required'),
 ];

@@ -58,8 +58,8 @@ export function AuthProvider({ children }) {
     return () => api.interceptors.response.eject(id);
   }, [logout]);
 
-  const login = useCallback(async (email, password) => {
-    const { data } = await api.post('auth/login', { email, password });
+  const login = useCallback(async (email, password, accountType) => {
+    const { data } = await api.post('auth/login', { email, password, accountType });
     setUser(data.user);
     return data.user;
   }, []);

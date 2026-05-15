@@ -6,18 +6,20 @@ import { logActivity } from '../services/activity.service.js';
 import { attachAuthCookie, clearAuthCookie } from '../utils/authCookie.js';
 
 export const signup = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, accountType } = req.body;
 
   const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) {
     return res.status(400).json({ success: false, message: 'Email already registered' });
   }
 
+  const role = accountType === 'admin' ? ROLES.ADMIN : ROLES.MEMBER;
+
   const user = await User.create({
     name,
     email,
     password,
-    role: ROLES.MEMBER,
+    role,
   });
 
   await logActivity({
@@ -43,11 +45,24 @@ export const signup = asyncHandler(async (req, res) => {
 });
 
 export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, accountType } = req.body;
 
   const user = await User.findOne({ email }).select('+password');
   if (!user || !(await user.comparePassword(password))) {
     return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+
+  if (accountType === 'admin' && user.role !== ROLES.ADMIN) {
+    return res.status(403).json({
+      success: false,
+      message: 'Not an admin account. Sign in as a member instead.',
+    });
+  }
+  if (accountType === 'member' && user.role !== ROLES.MEMBER) {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin accounts must use Admin sign-in.',
+    });
   }
 
   const token = signToken({ id: user._id.toString(), role: user.role });

@@ -9,7 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node seed/seed.js",
     "print:mongo-uri": "node ./scripts/print-atlas-uri.mjs",
-    "test": "node --import ./tests/test-env.cjs --test ./tests/http.test.js ./tests/jwt.test.js"
+    "test": "node --import ./tests/test-env.cjs --test ./tests/allowedEmail.test.js ./tests/auth.http.test.js ./tests/http.test.js ./tests/jwt.test.js"
   },
   "engines": {
     "node": ">=18"

@@ -10,4 +10,7 @@ test('client package.json is valid', () => {
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   assert.strictEqual(pkg.name, 'client');
   assert.ok(pkg.scripts.test);
+  assert.ok(pkg.scripts.build, 'build script required for Railway / Docker');
+  assert.ok(pkg.scripts.dev);
+  assert.ok(pkg.dependencies?.react && pkg.dependencies?.['react-router-dom']);
 });

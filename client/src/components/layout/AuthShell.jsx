@@ -55,8 +55,9 @@ export function AuthShell({ children, title, subtitle }) {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.35 }}
             >
-              Workspace access is limited to{' '}
-              <span className="font-semibold text-violet-300">@ethara.ai</span> accounts.
+              <span className="font-semibold text-violet-300">Admin</span> accounts use your{' '}
+              <span className="font-semibold text-violet-300">@ethara.ai</span> email.{' '}
+              <span className="font-semibold text-slate-300">Members</span> can use any email.
             </motion.p>
           </motion.div>
           <p className="text-xs text-slate-600">© Ethara · Internal task management</p>

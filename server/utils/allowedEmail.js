@@ -11,6 +11,12 @@ export function isAllowedEmail(email) {
   return normalized.endsWith(`@${domain}`);
 }
 
+/** Message when admin signup/login requires workspace domain email */
+export function adminWorkspaceEmailMessage() {
+  return `Admin accounts must use an email ending with @${getAllowedEmailDomain()}.`;
+}
+
+/** @deprecated prefer adminWorkspaceEmailMessage — kept for tests/messages */
 export function allowedEmailMessage() {
-  return `Only @${getAllowedEmailDomain()} email addresses can sign in.`;
+  return adminWorkspaceEmailMessage();
 }

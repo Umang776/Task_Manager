@@ -26,7 +26,7 @@ async function seed() {
     console.log('Promoted existing user to admin:', adminEmail);
   }
 
-  const memberEmail = process.env.SEED_MEMBER_EMAIL || 'member@ethara.ai';
+  const memberEmail = process.env.SEED_MEMBER_EMAIL || 'demo.member@gmail.com';
   const memberPassword = process.env.SEED_MEMBER_PASSWORD || 'Member123!';
   let member = await User.findOne({ email: memberEmail });
   if (!member) {
