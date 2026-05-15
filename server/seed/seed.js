@@ -9,7 +9,7 @@ import { ROLES } from '../utils/constants.js';
 async function seed() {
   await connectDB();
 
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@example.com';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@ethara.ai';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin123!';
   let admin = await User.findOne({ email: adminEmail });
   if (!admin) {
@@ -26,7 +26,7 @@ async function seed() {
     console.log('Promoted existing user to admin:', adminEmail);
   }
 
-  const memberEmail = process.env.SEED_MEMBER_EMAIL || 'member@example.com';
+  const memberEmail = process.env.SEED_MEMBER_EMAIL || 'member@ethara.ai';
   const memberPassword = process.env.SEED_MEMBER_PASSWORD || 'Member123!';
   let member = await User.findOne({ email: memberEmail });
   if (!member) {

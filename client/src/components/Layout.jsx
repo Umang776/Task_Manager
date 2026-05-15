@@ -7,7 +7,7 @@ import { DevBanner } from './DevBanner.jsx';
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-slate-100 dark:from-slate-950 dark:via-slate-950 dark:to-violet-950/20">
       <Sidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
       <div className="flex min-h-screen flex-1 flex-col">
         <Navbar onMenu={() => setMobileOpen(true)} />

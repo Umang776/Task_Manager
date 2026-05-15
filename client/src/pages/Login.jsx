@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
-import { ThemeToggle } from '../components/ThemeToggle.jsx';
+import { AuthShell } from '../components/layout/AuthShell.jsx';
+import { Input } from '../components/ui/Input.jsx';
+import { Select } from '../components/ui/Select.jsx';
+import { Button } from '../components/ui/Button.jsx';
 
-const DEFAULT_ADMIN = { email: 'admin@example.com', password: 'Admin123!' };
-const DEFAULT_MEMBER = { email: 'member@example.com', password: 'Member123!' };
+const DEFAULT_ADMIN = { email: 'admin@ethara.ai', password: 'Admin123!' };
+const DEFAULT_MEMBER = { email: 'member@ethara.ai', password: 'Member123!' };
 
 export default function Login() {
   const { login, isAuthenticated } = useAuth();
@@ -51,6 +55,10 @@ export default function Login() {
   };
 
   const onSubmit = async (values) => {
+    if (!values.email.toLowerCase().endsWith('@ethara.ai')) {
+      toast.error('Only @ethara.ai email addresses can sign in.');
+      return;
+    }
     try {
       await login(values.email, values.password);
       toast.success('Welcome back');
@@ -61,71 +69,48 @@ export default function Login() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
-      <div className="absolute right-4 top-4 z-10">
-        <ThemeToggle />
-      </div>
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl dark:border-slate-800 dark:bg-slate-900">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Sign in</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Team Task Manager — projects, tasks, and progress with <span className="font-semibold text-slate-800 dark:text-slate-100">role-based access (Admin / Member)</span>.
-        </p>
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <div>
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="signInAs">
-              Sign in as
-            </label>
-            <select
-              id="signInAs"
-              value={signInAs}
-              onChange={(e) => handleSignInAsChange(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-            >
-              <option value="">Choose Admin or Member</option>
-              <option value="admin">Admin</option>
-              <option value="member">Member</option>
-            </select>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Prefills email and password. Your role is assigned by the server after login.
-            </p>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-              {...register('email', { required: true })}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500 focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-              {...register('password', { required: true })}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-700 disabled:opacity-60"
-          >
+    <AuthShell
+      title="Sign in"
+      subtitle="Use your Ethara workspace email. Admin and Member roles are assigned after authentication."
+    >
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+        <Select
+          label="Quick sign-in"
+          value={signInAs}
+          onChange={handleSignInAsChange}
+          placeholder="Choose Admin or Member"
+          options={[
+            { value: '', label: 'Choose Admin or Member' },
+            { value: 'admin', label: 'Admin' },
+            { value: 'member', label: 'Member' },
+          ]}
+          hint="Prefills credentials for demo accounts (after seed)."
+        />
+        <Input
+          label="Work email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@ethara.ai"
+          {...register('email', { required: true })}
+        />
+        <Input
+          label="Password"
+          type="password"
+          autoComplete="current-password"
+          {...register('password', { required: true })}
+        />
+        <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
+          <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-300">
-          No account?{' '}
-          <Link className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400" to="/signup">
-            Create one
-          </Link>
-        </p>
-      </div>
-    </div>
+          </Button>
+        </motion.div>
+      </form>
+      <p className="mt-6 text-center text-sm text-slate-400">
+        No account?{' '}
+        <Link className="font-semibold text-violet-400 hover:text-violet-300" to="/signup">
+          Create one
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

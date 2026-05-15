@@ -1,13 +1,9 @@
 @import 'tailwindcss';
 
-/* Class-based dark mode (toggle `dark` on <html>). Tailwind v4 defaults to prefers-color-scheme otherwise. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-  --color-surface: oklch(0.99 0 0);
-  --color-surface-dark: oklch(0.16 0.02 260);
-  --color-muted: oklch(0.55 0.02 260);
 }
 
 html,
@@ -17,9 +13,42 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-200;
+  @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-300;
 }
 
 html.dark body {
   @apply bg-slate-950 text-slate-100;
+}
+
+::selection {
+  @apply bg-violet-500/30 text-violet-950;
+}
+
+html.dark ::selection {
+  @apply bg-violet-400/30 text-white;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(139 92 246 / 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(139 92 246 / 0.35);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(139 92 246 / 0.55);
 }

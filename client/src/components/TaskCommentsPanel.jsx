@@ -3,8 +3,12 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
 import { Loader } from './Loader.jsx';
+import { useConfirm } from './ui/ConfirmDialog.jsx';
+import { Textarea } from './ui/Input.jsx';
+import { Button } from './ui/Button.jsx';
 
 export function TaskCommentsPanel({ taskId, userId, isAdmin, onChanged }) {
+  const confirm = useConfirm();
   const { register, handleSubmit, reset } = useForm({ defaultValues: { body: '' } });
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,7 +61,13 @@ export function TaskCommentsPanel({ taskId, userId, isAdmin, onChanged }) {
   };
 
   const removeComment = async (commentId) => {
-    if (!window.confirm('Delete this comment?')) return;
+    const ok = await confirm({
+      title: 'Delete comment',
+      message: 'Remove this comment?',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await api.delete(`tasks/${taskId}/comments/${commentId}`);
       toast.success('Comment removed');
@@ -147,18 +157,10 @@ export function TaskCommentsPanel({ taskId, userId, isAdmin, onChanged }) {
         </ul>
       )}
       <form className="mt-3 space-y-2" onSubmit={handleSubmit(onComment)}>
-        <textarea
-          rows={2}
-          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-          placeholder="Write a comment"
-          {...register('body', { required: true })}
-        />
-        <button
-          type="submit"
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-        >
+        <Textarea rows={2} placeholder="Write a comment" {...register('body', { required: true })} />
+        <Button type="submit" className="!text-xs">
           Post comment
-        </button>
+        </Button>
       </form>
     </div>
   );

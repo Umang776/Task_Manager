@@ -5,6 +5,10 @@ import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { TaskCommentsPanel } from '../components/TaskCommentsPanel.jsx';
+import { Select } from '../components/ui/Select.jsx';
+import { useConfirm } from '../components/ui/ConfirmDialog.jsx';
+import { PageTransition } from '../components/ui/PageTransition.jsx';
+import { Button } from '../components/ui/Button.jsx';
 
 const STATUSES = ['Todo', 'In Progress', 'Completed', 'Overdue'];
 
@@ -12,6 +16,7 @@ export default function TaskDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const isAdmin = user?.role === 'admin';
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +61,7 @@ export default function TaskDetail() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PageTransition className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <Link to="/tasks" className="font-medium text-indigo-600 hover:underline dark:text-indigo-400">
           All tasks
@@ -99,25 +104,19 @@ export default function TaskDetail() {
             <dt className="text-xs font-semibold uppercase text-slate-500">Status</dt>
             <dd className="mt-1">
               {canChangeStatus ? (
-                <select
-                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950"
+                <Select
                   value={task.status}
-                  onChange={async (e) => {
+                  onChange={async (status) => {
                     try {
-                      await api.put(`tasks/${task._id}`, { status: e.target.value });
+                      await api.put(`tasks/${task._id}`, { status });
                       toast.success('Status updated');
                       load();
                     } catch (err) {
                       toast.error(err.response?.data?.message || 'Update failed');
                     }
                   }}
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+                  options={STATUSES.map((s) => ({ value: s, label: s }))}
+                />
               ) : (
                 <span className="text-slate-900 dark:text-white">{task.status}</span>
               )}
@@ -127,17 +126,24 @@ export default function TaskDetail() {
 
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            to={`/kanban`}
+            to="/board"
             className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            Open Kanban
+            Open Task Board
           </Link>
           {isAdmin ? (
-            <button
+            <Button
               type="button"
-              className="text-xs font-semibold text-red-600 hover:underline"
+              variant="danger"
+              className="!px-3 !py-1.5 !text-xs"
               onClick={async () => {
-                if (!window.confirm('Delete this task?')) return;
+                const ok = await confirm({
+                  title: 'Delete task',
+                  message: 'Delete this task permanently?',
+                  confirmLabel: 'Delete',
+                  variant: 'danger',
+                });
+                if (!ok) return;
                 try {
                   await api.delete(`tasks/${task._id}`);
                   toast.success('Task deleted');
@@ -148,7 +154,7 @@ export default function TaskDetail() {
               }}
             >
               Delete task
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>
@@ -161,6 +167,6 @@ export default function TaskDetail() {
           onChanged={load}
         />
       </div>
-    </div>
+    </PageTransition>
   );
 }

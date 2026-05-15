@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -8,6 +8,10 @@ import { ProjectCard } from '../components/ProjectCard.jsx';
 import { Modal } from '../components/Modal.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
+import { Input, Textarea } from '../components/ui/Input.jsx';
+import { Select } from '../components/ui/Select.jsx';
+import { Button } from '../components/ui/Button.jsx';
+import { PageTransition } from '../components/ui/PageTransition.jsx';
 
 const STATUSES = ['Active', 'Completed', 'On Hold'];
 
@@ -71,7 +75,7 @@ export default function Projects() {
   }
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Projects</h1>
@@ -140,12 +144,12 @@ export default function Projects() {
           if (createdId) navigate(`/projects/${createdId}`);
         }}
       />
-    </div>
+    </PageTransition>
   );
 }
 
 function ProjectModal({ open, onClose, project, onSaved }) {
-  const { register, handleSubmit, reset } = useForm({
+  const { register, handleSubmit, reset, control } = useForm({
     defaultValues: { title: '', description: '', status: 'Active' },
   });
   const [users, setUsers] = useState([]);
@@ -210,34 +214,20 @@ function ProjectModal({ open, onClose, project, onSaved }) {
   return (
     <Modal open={open} title={project ? 'Edit project' : 'New project'} onClose={onClose}>
       <form id="project-modal-form" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label className="text-sm font-medium">Title</label>
-          <input
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('title', { required: true })}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Description</label>
-          <textarea
-            rows={3}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('description')}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Status</label>
-          <select
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('status')}
-          >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Input label="Title" {...register('title', { required: true })} />
+        <Textarea label="Description" rows={3} {...register('description')} />
+        <Controller
+          name="status"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Status"
+              value={field.value}
+              onChange={field.onChange}
+              options={STATUSES.map((s) => ({ value: s, label: s }))}
+            />
+          )}
+        />
         <div>
           <p className="text-sm font-medium">Team members</p>
           <div className="mt-2 max-h-40 space-y-2 overflow-y-auto rounded-xl border border-slate-200 p-2 dark:border-slate-700">
@@ -259,16 +249,10 @@ function ProjectModal({ open, onClose, project, onSaved }) {
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm dark:border-slate-700"
-            onClick={onClose}
-          >
+          <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
-            Save
-          </button>
+          </Button>
+          <Button type="submit">Save</Button>
         </div>
       </form>
     </Modal>

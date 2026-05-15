@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { Modal } from '../components/Modal.jsx';
 import { TaskCard } from '../components/TaskCard.jsx';
+import { Input, Textarea } from '../components/ui/Input.jsx';
+import { Select } from '../components/ui/Select.jsx';
+import { DatePicker } from '../components/ui/DatePicker.jsx';
+import { Button } from '../components/ui/Button.jsx';
+import { useConfirm } from '../components/ui/ConfirmDialog.jsx';
+import { PageTransition } from '../components/ui/PageTransition.jsx';
 
 const TASK_STATUSES = ['Todo', 'In Progress', 'Completed', 'Overdue'];
 const PRIORITIES = ['Low', 'Medium', 'High'];
@@ -15,6 +21,7 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const confirm = useConfirm();
   const isAdmin = user?.role === 'admin';
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
@@ -48,7 +55,13 @@ export default function ProjectDetail() {
   }, [id]);
 
   const handleDeleteProject = async () => {
-    if (!window.confirm('Delete this project and all its tasks?')) return;
+    const ok = await confirm({
+      title: 'Delete project',
+      message: 'Delete this project and all its tasks? This cannot be undone.',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await api.delete(`projects/${id}`);
       toast.success('Project deleted');
@@ -67,7 +80,7 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="space-y-8">
+    <PageTransition className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <button
@@ -90,10 +103,10 @@ export default function ProjectDetail() {
               Tasks in table view
             </Link>
             <Link
-              to="/kanban"
+              to="/board"
               className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
             >
-              Kanban
+              Task Board
             </Link>
           </div>
         </div>
@@ -186,12 +199,13 @@ export default function ProjectDetail() {
         statuses={TASK_STATUSES}
         priorities={PRIORITIES}
       />
-    </div>
+    </PageTransition>
   );
 }
 
 function TaskModal({ open, onClose, projectId, task, onSaved, isAdmin, statuses, priorities }) {
-  const { register, handleSubmit, reset } = useForm({
+  const confirm = useConfirm();
+  const { register, handleSubmit, reset, control, watch, setValue } = useForm({
     defaultValues: {
       title: '',
       description: '',
@@ -264,7 +278,13 @@ function TaskModal({ open, onClose, projectId, task, onSaved, isAdmin, statuses,
 
   const handleDelete = async () => {
     if (!task || !isAdmin) return;
-    if (!window.confirm('Delete this task?')) return;
+    const ok = await confirm({
+      title: 'Delete task',
+      message: 'Delete this task permanently?',
+      confirmLabel: 'Delete',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await api.delete(`tasks/${task._id}`);
       toast.success('Task deleted');
@@ -282,26 +302,20 @@ function TaskModal({ open, onClose, projectId, task, onSaved, isAdmin, statuses,
             <p className="font-semibold text-slate-900 dark:text-white">{task.title}</p>
             <p className="text-slate-600 dark:text-slate-300">{task.description}</p>
             <p className="text-slate-500">Status: {task.status}</p>
-            <label className="mt-4 block text-sm font-medium">Update status</label>
-            <select
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-              defaultValue={task.status}
-              onChange={async (e) => {
+            <Select
+              label="Update status"
+              value={task.status}
+              onChange={async (status) => {
                 try {
-                  await api.put(`tasks/${task._id}`, { status: e.target.value });
+                  await api.put(`tasks/${task._id}`, { status });
                   toast.success('Status updated');
                   await onSaved();
                 } catch (err) {
                   toast.error(err.response?.data?.message || 'Update failed');
                 }
               }}
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              options={statuses.map((s) => ({ value: s, label: s }))}
+            />
           </div>
         ) : (
           <p className="text-sm text-slate-500">Select a task from the list.</p>
@@ -313,94 +327,68 @@ function TaskModal({ open, onClose, projectId, task, onSaved, isAdmin, statuses,
   return (
     <Modal open={open} title={task ? 'Edit task' : 'New task'} onClose={onClose}>
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label className="text-sm font-medium">Title</label>
-          <input
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('title', { required: true })}
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium">Description</label>
-          <textarea
-            rows={3}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('description')}
-          />
-        </div>
+        <Input label="Title" {...register('title', { required: true })} />
+        <Textarea label="Description" rows={3} {...register('description')} />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-sm font-medium">Priority</label>
-            <select
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-              {...register('priority')}
-            >
-              {priorities.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm font-medium">Status</label>
-            <select
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-              {...register('status')}
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div>
-          <label className="text-sm font-medium">Due date</label>
-          <input
-            type="date"
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('dueDate')}
+          <Controller
+            name="priority"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Priority"
+                value={field.value}
+                onChange={field.onChange}
+                options={priorities.map((p) => ({ value: p, label: p }))}
+              />
+            )}
+          />
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Status"
+                value={field.value}
+                onChange={field.onChange}
+                options={statuses.map((s) => ({ value: s, label: s }))}
+              />
+            )}
           />
         </div>
-        <div>
-          <label className="text-sm font-medium">Assignee</label>
-          <select
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            {...register('assignedTo')}
-          >
-            <option value="">Unassigned</option>
-            {users.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.name} ({u.email})
-              </option>
-            ))}
-          </select>
-        </div>
+        <DatePicker
+          label="Due date"
+          value={watch('dueDate')}
+          onChange={(v) => setValue('dueDate', v)}
+        />
+        <Controller
+          name="assignedTo"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Assignee"
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Unassigned"
+              options={[
+                { value: '', label: 'Unassigned' },
+                ...users.map((u) => ({ value: u._id, label: `${u.name} (${u.email})` })),
+              ]}
+            />
+          )}
+        />
         <div className="flex flex-wrap justify-between gap-2 pt-2">
           <div>
             {task ? (
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900"
-              >
+              <Button type="button" variant="danger" onClick={handleDelete}>
                 Delete
-              </button>
+              </Button>
             ) : null}
           </div>
           <div className="flex gap-2">
-            <button
-              type="button"
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm dark:border-slate-700"
-              onClick={onClose}
-            >
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">
-              Save
-            </button>
+            </Button>
+            <Button type="submit">Save</Button>
           </div>
         </div>
       </form>

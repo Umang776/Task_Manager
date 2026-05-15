@@ -8,7 +8,7 @@ import { attachAuthCookie, clearAuthCookie } from '../utils/authCookie.js';
 export const signup = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  const exists = await User.findOne({ email });
+  const exists = await User.findOne({ email: email.toLowerCase() });
   if (exists) {
     return res.status(400).json({ success: false, message: 'Email already registered' });
   }

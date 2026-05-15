@@ -5,6 +5,9 @@ import { api } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { Loader } from '../components/Loader.jsx';
 import { EmptyState } from '../components/EmptyState.jsx';
+import { Select } from '../components/ui/Select.jsx';
+import { Input } from '../components/ui/Input.jsx';
+import { PageTransition } from '../components/ui/PageTransition.jsx';
 
 const STATUSES = ['Todo', 'In Progress', 'Completed', 'Overdue'];
 
@@ -75,7 +78,7 @@ export default function Tasks() {
   };
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Tasks</h1>
@@ -91,19 +94,18 @@ export default function Tasks() {
             All projects
           </Link>
           <Link
-            to="/kanban"
+            to="/board"
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            Kanban
+            Task Board
           </Link>
         </div>
       </div>
 
       <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:grid-cols-4">
         <div className="md:col-span-2">
-          <label className="text-xs font-semibold uppercase text-slate-500">Search</label>
-          <input
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+          <Input
+            label="Search"
             placeholder="Search by title"
             value={searchInput}
             onChange={(e) => {
@@ -120,36 +122,24 @@ export default function Tasks() {
             }}
           />
         </div>
-        <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Project</label>
-          <select
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            value={projectFilter}
-            onChange={(e) => updateParam('project', e.target.value)}
-          >
-            <option value="">All</option>
-            {projects.map((p) => (
-              <option key={p._id} value={p._id}>
-                {p.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase text-slate-500">Status</label>
-          <select
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
-            value={statusFilter}
-            onChange={(e) => updateParam('status', e.target.value)}
-          >
-            <option value="">All</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          label="Project"
+          value={projectFilter}
+          onChange={(v) => updateParam('project', v)}
+          options={[
+            { value: '', label: 'All projects' },
+            ...projects.map((p) => ({ value: p._id, label: p.title })),
+          ]}
+        />
+        <Select
+          label="Status"
+          value={statusFilter}
+          onChange={(v) => updateParam('status', v)}
+          options={[
+            { value: '', label: 'All statuses' },
+            ...STATUSES.map((s) => ({ value: s, label: s })),
+          ]}
+        />
       </div>
 
       {loading ? (
@@ -220,25 +210,20 @@ export default function Tasks() {
                     <td className="px-4 py-3">{t.priority}</td>
                     <td className="px-4 py-3">
                       {isAdmin || String(t.assignedTo?._id) === String(user?.id) ? (
-                        <select
-                          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-950"
+                        <Select
                           value={t.status}
-                          onChange={async (e) => {
+                          onChange={async (status) => {
                             try {
-                              await api.put(`tasks/${t._id}`, { status: e.target.value });
+                              await api.put(`tasks/${t._id}`, { status });
                               toast.success('Status updated');
                               loadTasks();
                             } catch (err) {
                               toast.error(err.response?.data?.message || 'Update failed');
                             }
                           }}
-                        >
-                          {STATUSES.map((s) => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
+                          options={STATUSES.map((s) => ({ value: s, label: s }))}
+                          className="min-w-[8.5rem]"
+                        />
                       ) : (
                         t.status
                       )}
@@ -295,6 +280,6 @@ export default function Tasks() {
           </div>
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

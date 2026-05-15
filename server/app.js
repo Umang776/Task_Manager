@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
 import authRoutes from './routes/auth.routes.js';
 import projectRoutes from './routes/project.routes.js';
 import taskRoutes from './routes/task.routes.js';
@@ -56,7 +57,12 @@ export function createApp() {
   app.use(cookieParser());
 
   app.get('/health', (_req, res) => {
-    res.json({ ok: true, service: 'team-task-manager-api' });
+    const dbReady = mongoose.connection.readyState === 1;
+    res.json({
+      ok: true,
+      service: 'team-task-manager-api',
+      dbReady,
+    });
   });
 
   app.use('/api', apiLimiter);
