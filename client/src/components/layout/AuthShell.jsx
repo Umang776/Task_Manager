@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom';
 import { ThemeToggle } from '../ThemeToggle.jsx';
 
 const ETHARA_SITE = 'https://www.ethara.ai/';
+const AUTHOR_LINKEDIN = 'https://www.linkedin.com/in/umang-726928267/';
+const AUTHOR_GITHUB = 'https://github.com/Umang776';
+
+const footerLink =
+  'transition hover:text-violet-600 dark:hover:text-violet-400';
 
 const FEATURES = [
   { title: 'Projects', desc: 'Organize workstreams and members' },
@@ -139,15 +144,28 @@ export function AuthShell({ children, title, subtitle }) {
           ))}
         </motion.div>
 
-        <p className="mt-8 hidden text-xs text-slate-400 lg:block dark:text-slate-500">
-          © {new Date().getFullYear()} Ethara ·{' '}
+        <p className="mt-8 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
+          <span>© {new Date().getFullYear()} Ethara ·</span>
+          <a href={ETHARA_SITE} target="_blank" rel="noopener noreferrer" className={footerLink}>
+            ethara.ai
+          </a>
+          <span aria-hidden>·</span>
           <a
-            href={ETHARA_SITE}
+            href={AUTHOR_GITHUB}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-violet-600 dark:hover:text-violet-400"
+            className={`font-medium text-slate-500 dark:text-slate-400 ${footerLink}`}
+            title="Umang on GitHub"
           >
-            ethara.ai
+            UM
+          </a>
+          <span aria-hidden>·</span>
+          <a href={AUTHOR_LINKEDIN} target="_blank" rel="noopener noreferrer" className={footerLink}>
+            LinkedIn
+          </a>
+          <span aria-hidden>·</span>
+          <a href={AUTHOR_GITHUB} target="_blank" rel="noopener noreferrer" className={footerLink}>
+            Umang776
           </a>
         </p>
       </motion.aside>
