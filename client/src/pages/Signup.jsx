@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext.jsx';
 import { AuthShell } from '../components/layout/AuthShell.jsx';
 import { Input } from '../components/ui/Input.jsx';
-import { Select } from '../components/ui/Select.jsx';
+import { AuthRoleToggle } from '../components/auth/AuthRoleToggle.jsx';
 import { Button } from '../components/ui/Button.jsx';
 
 const MotionLink = motion(Link);
@@ -74,18 +74,7 @@ export default function Signup() {
       subtitle="Choose admin or member, then complete your profile."
     >
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-        <Select
-          label="Sign up as"
-          value={accountType}
-          onChange={(v) => setValue('accountType', v)}
-          placeholder="Choose Admin or Member"
-          options={[
-            { value: '', label: 'Choose Admin or Member' },
-            { value: 'admin', label: 'Admin' },
-            { value: 'member', label: 'Member' },
-          ]}
-          hint="Admins are limited to @ethara.ai. Members can use any email."
-        />
+        <AuthRoleToggle label="Sign up as" value={accountType} onChange={(v) => setValue('accountType', v)} />
         <input type="hidden" {...register('accountType')} />
         <Input label="Full name" autoComplete="name" {...register('name', { required: true })} />
         <Input
