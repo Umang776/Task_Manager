@@ -70,9 +70,8 @@ export default function Signup() {
 
   return (
     <AuthShell
-      authBrand
       title="Create account"
-      subtitle="Sign up as an admin (Ethara email) or a member (any email)."
+      subtitle="Choose admin or member, then complete your profile."
     >
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <Select
@@ -108,10 +107,10 @@ export default function Signup() {
           {isSubmitting ? 'Creating…' : 'Create account'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
         Already have an account?{' '}
         <MotionLink
-          className="inline-block font-semibold text-violet-400 hover:text-violet-300"
+          className="inline-block font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
           to="/login"
           {...authFooterLinkMotion}
         >

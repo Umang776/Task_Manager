@@ -52,3 +52,32 @@ html {
 *::-webkit-scrollbar-thumb:hover {
   background: rgb(139 92 246 / 0.55);
 }
+
+/* Auth pages — theme-aware full-bleed layout */
+.auth-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgb(139 92 246 / 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgb(34 211 238 / 0.1), transparent 45%),
+    linear-gradient(180deg, rgb(248 250 252) 0%, rgb(241 245 249) 50%, rgb(248 250 252) 100%);
+}
+
+html.dark .auth-mesh {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgb(139 92 246 / 0.18), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgb(34 211 238 / 0.08), transparent 45%),
+    linear-gradient(180deg, rgb(2 6 23) 0%, rgb(15 23 42) 40%, rgb(2 6 23) 100%);
+}
+
+.auth-grid {
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, black 20%, transparent 75%);
+}
+
+html.dark .auth-grid {
+  background-image:
+    linear-gradient(rgb(148 163 184 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.06) 1px, transparent 1px);
+}

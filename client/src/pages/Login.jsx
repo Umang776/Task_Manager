@@ -77,9 +77,8 @@ export default function Login() {
 
   return (
     <AuthShell
-      authBrand
       title="Sign in"
-      subtitle="Admins use an @ethara.ai email. Members can use any email address."
+      subtitle="Use your workspace credentials. Pick admin or member to match your account."
     >
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <Select
@@ -108,19 +107,19 @@ export default function Login() {
           autoComplete="current-password"
           {...register('password', { required: true })}
         />
-        <p className="text-xs text-slate-500">{demoHint}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{demoHint}</p>
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
-      <p className="mt-6 text-center text-sm text-slate-400">
+      <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
         No account?{' '}
         <MotionLink
-          className="inline-block font-semibold text-violet-400 hover:text-violet-300"
+          className="inline-block font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
           to="/signup"
           {...authFooterLinkMotion}
         >
-          Sign up as Admin or Member
+          Create account
         </MotionLink>
       </p>
     </AuthShell>
