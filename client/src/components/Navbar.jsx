@@ -26,7 +26,9 @@ export function Navbar({ onMenu }) {
             <p className="text-sm font-semibold text-slate-900 dark:text-white">
               Hello, {user?.name}
             </p>
-            <p className="text-xs text-slate-500 capitalize dark:text-slate-400">{user?.role}</p>
+            <p className="text-xs text-slate-500 capitalize dark:text-slate-400">
+              {user?.role === 'admin' ? 'Admin' : user?.role === 'member' ? 'Member' : user?.role || '—'}
+            </p>
           </div>
         </motion.div>
       </div>

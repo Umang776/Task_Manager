@@ -54,12 +54,13 @@ export default function Login() {
   };
 
   const onSubmit = async (values) => {
-    if (!values.accountType) {
+    const kind = (values.accountType || accountType || '').trim();
+    if (!kind) {
       toast.error('Choose whether you are signing in as Admin or Member.');
       return;
     }
     try {
-      await login(values.email, values.password, values.accountType);
+      await login(values.email, values.password, kind);
       toast.success('Welcome back');
       navigate(from, { replace: true });
     } catch (e) {
@@ -76,6 +77,7 @@ export default function Login() {
 
   return (
     <AuthShell
+      authBrand
       title="Sign in"
       subtitle="Admins use an @ethara.ai email. Members can use any email address."
     >

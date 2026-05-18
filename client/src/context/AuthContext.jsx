@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
+import { normalizeAuthUser } from '../utils/authUser.js';
 
 const AuthContext = createContext(null);
 
@@ -28,7 +29,7 @@ export function AuthProvider({ children }) {
     setLoading(true);
     try {
       const { data } = await api.get('auth/me');
-      setUser(data.user);
+      setUser(normalizeAuthUser(data.user));
     } catch {
       setUser(null);
     } finally {
@@ -60,14 +61,12 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password, accountType) => {
     const { data } = await api.post('auth/login', { email, password, accountType });
-    setUser(data.user);
-    return data.user;
+    setUser(normalizeAuthUser(data.user));
+    return normalizeAuthUser(data.user);
   }, []);
 
   const signup = useCallback(async (payload) => {
-    const { data } = await api.post('auth/signup', payload);
-    setUser(data.user);
-    return data.user;
+    await api.post('auth/signup', payload);
   }, []);
 
   const value = useMemo(

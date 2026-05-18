@@ -1,7 +1,7 @@
 {
   "name": "team-task-manager-server",
   "version": "1.0.0",
-  "description": "Express API for Team Task Manager",
+  "description": "Express API for Ethara Tasks",
   "main": "server.js",
   "type": "module",
   "scripts": {

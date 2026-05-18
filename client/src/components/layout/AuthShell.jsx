@@ -2,7 +2,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '../ThemeToggle.jsx';
 
-export function AuthShell({ children, title, subtitle }) {
+const ETHARA_SITE = 'https://www.ethara.ai/';
+
+export function AuthShell({ children, title, subtitle, authBrand = false }) {
   return (
     <motion.div
       className="relative flex min-h-screen overflow-hidden bg-slate-950"
@@ -35,12 +37,40 @@ export function AuthShell({ children, title, subtitle }) {
           transition={{ delay: 0.1, duration: 0.5 }}
         >
           <motion.div>
-            <Link to="/login" className="inline-flex items-center gap-2">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 text-lg font-bold text-white shadow-lg shadow-violet-500/30">
-                E
-              </span>
+            <a
+              href={ETHARA_SITE}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 rounded-xl outline-none ring-offset-2 ring-offset-slate-950 transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-violet-400"
+            >
+              <img
+                src="/ethara-mark.svg"
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 shrink-0 rounded-xl shadow-lg shadow-violet-500/25"
+              />
               <span className="text-xl font-bold tracking-tight text-white">Ethara Tasks</span>
-            </Link>
+            </a>
+            {authBrand ? (
+              <>
+                <p className="mt-2 text-xs font-medium uppercase tracking-wider text-violet-300/90">
+                  Built for Ethara
+                </p>
+                <p className="mt-6 max-w-md text-sm leading-relaxed text-slate-300">
+                  <a
+                    href={ETHARA_SITE}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-white underline decoration-violet-400/60 underline-offset-2 hover:decoration-violet-300"
+                  >
+                    Ethara
+                  </a>{' '}
+                  delivers reinforcement learning as a service on the path to capable, aligned systems. This workspace
+                  is Ethara&apos;s internal hub for shipping projects, tracking tasks, and coordinating as a team.
+                </p>
+              </>
+            ) : null}
             <motion.p
               className="mt-8 max-w-md text-3xl font-bold leading-tight text-white"
               initial={{ opacity: 0, y: 12 }}
@@ -60,7 +90,12 @@ export function AuthShell({ children, title, subtitle }) {
               <span className="font-semibold text-slate-300">Members</span> can use any email.
             </motion.p>
           </motion.div>
-          <p className="text-xs text-slate-600">© Ethara · Internal task management</p>
+          <p className="text-xs text-slate-600">
+            © Ethara ·{' '}
+            <a href={ETHARA_SITE} target="_blank" rel="noopener noreferrer" className="hover:text-slate-400">
+              ethara.ai
+            </a>
+          </p>
         </motion.aside>
 
         <motion.div
@@ -70,8 +105,20 @@ export function AuthShell({ children, title, subtitle }) {
           transition={{ delay: 0.15, duration: 0.45 }}
         >
           <div className="w-full max-w-md">
-            <div className="mb-6 lg:hidden">
-              <span className="text-lg font-bold text-white">Ethara Tasks</span>
+            <div className="mb-6 flex flex-col items-center gap-3 lg:hidden">
+              <a href={ETHARA_SITE} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2">
+                <img src="/ethara-mark.svg" alt="" width={40} height={40} className="h-10 w-10 rounded-lg" />
+                <span className="text-lg font-bold text-white">Ethara Tasks</span>
+              </a>
+              {authBrand ? (
+                <p className="text-center text-xs text-slate-400">
+                  Internal task manager for{' '}
+                  <a href={ETHARA_SITE} className="text-violet-300 hover:underline" target="_blank" rel="noopener noreferrer">
+                    Ethara
+                  </a>
+                  .
+                </p>
+              ) : null}
             </div>
             <motion.div
               className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl"

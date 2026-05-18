@@ -1,6 +1,6 @@
 # Operations runbook
 
-Concise checklist for running Team Task Manager in production.
+Concise checklist for running Ethara Tasks in production.
 
 ## Backups (MongoDB)
 
@@ -24,8 +24,10 @@ Concise checklist for running Team Task Manager in production.
 - **4xx:** set `LOG_CLIENT_ERRORS=true` to log non-5xx handler errors as warnings (noisy; use sparingly).
 - Add **Sentry** or OpenTelemetry later by wrapping `errorHandler` or using an Express monitoring package.
 
-## Auth cookies
+## Auth and domains
 
+- **Admin** signup/login requires email on the workspace domain (default **`ethara.ai`** via `ALLOWED_EMAIL_DOMAIN`).
+- **Member** accounts accept any valid email.
 - JWT is stored in an **httpOnly** cookie (`ttm_at`). `Authorization: Bearer` is still accepted for scripts and API tools.
 - **Split domains** (SPA on `app.example.com`, API on `api.example.com`): set `CROSS_ORIGIN_COOKIES=true` and HTTPS; cookie uses `SameSite=None; Secure`. You must set `CLIENT_URL` to the SPA origin(s) for CORS.
 

@@ -5,6 +5,18 @@ import { ROLES } from '../utils/constants.js';
 import { logActivity } from '../services/activity.service.js';
 import { attachAuthCookie, clearAuthCookie } from '../utils/authCookie.js';
 
+/** Plain user object for JSON (avoids Mongoose serialization quirks). */
+function publicUser(user) {
+  if (!user) return null;
+  const o = typeof user.toObject === 'function' ? user.toObject() : user;
+  return {
+    id: String(o._id),
+    name: o.name,
+    email: o.email,
+    role: o.role,
+  };
+}
+
 export const signup = asyncHandler(async (req, res) => {
   const { name, email, password, accountType } = req.body;
 
@@ -30,17 +42,13 @@ export const signup = asyncHandler(async (req, res) => {
     metadata: { email: user.email },
   });
 
-  const token = signToken({ id: user._id.toString(), role: user.role });
-  attachAuthCookie(res, token);
+  // Do not start a session — user must sign in explicitly
+  clearAuthCookie(res);
 
   res.status(201).json({
     success: true,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    message: 'Account created. Sign in with your email and password.',
+    user: publicUser(user),
   });
 });
 
@@ -77,12 +85,7 @@ export const login = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    user: publicUser(user),
   });
 });
 
@@ -94,11 +97,6 @@ export function logout(_req, res) {
 export const me = asyncHandler(async (req, res) => {
   res.json({
     success: true,
-    user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-    },
+    user: publicUser(req.user),
   });
 });

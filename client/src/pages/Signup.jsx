@@ -18,7 +18,7 @@ const authFooterLinkMotion = {
 };
 
 export default function Signup() {
-  const { signup, isAuthenticated } = useAuth();
+  const { signup, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -53,8 +53,9 @@ export default function Signup() {
         password: values.password,
         accountType: values.accountType,
       });
-      toast.success('Account created');
-      navigate('/', { replace: true });
+      await logout();
+      toast.success('Account created. Please sign in.');
+      navigate('/login', { replace: true });
     } catch (e) {
       toast.error(e.response?.data?.message || 'Signup failed');
     }
@@ -69,6 +70,7 @@ export default function Signup() {
 
   return (
     <AuthShell
+      authBrand
       title="Create account"
       subtitle="Sign up as an admin (Ethara email) or a member (any email)."
     >
